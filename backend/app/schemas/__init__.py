@@ -1,3 +1,3 @@
-from .client import ClientRead, ClientFilter
+from .client import ClientRead, ClientFilter, ClientCreate, ClientUpdate
 from .auth import Token, TokenData, UserCreate, UserRead
-# и т.д.
+from .transaction import TransactionCreate, TransactionUpdate, TransactionRead, TransactionFilter
