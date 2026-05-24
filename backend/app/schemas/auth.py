@@ -13,3 +13,11 @@ class Token(BaseModel):
 
 class TokenData(BaseModel):
     username: Optional[str] = None
+    
+class UserRead(BaseModel):
+    username: str
+    email: EmailStr
+    role: str
+
+    class Config:
+        from_attributes = True
