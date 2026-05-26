@@ -1,4 +1,5 @@
 from sqlalchemy import Column, Integer, String, Float, Date, ForeignKey
+from sqlalchemy.orm import relationship
 from app.core.database import Base
 
 class Product(Base):
@@ -11,3 +12,5 @@ class Product(Base):
     interest_rate = Column(Float)
     status = Column(String(30))
     start_date = Column(Date)
+
+    client = relationship("Client", back_populates="products")
