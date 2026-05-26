@@ -1,4 +1,5 @@
 from sqlalchemy import Column, Integer, String, Date, Boolean, ForeignKey
+from sqlalchemy.orm import relationship
 from app.core.database import Base
 
 class Document(Base):
@@ -11,3 +12,5 @@ class Document(Base):
     snils = Column(String(14))
     document_verified = Column(Boolean, default=False)
     verification_date = Column(Date)
+
+    client = relationship("Client", back_populates="document")
