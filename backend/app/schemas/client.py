@@ -12,19 +12,31 @@ class ClientBase(BaseModel):
 
 
 class ClientCreate(ClientBase):
-    pass
+    """Создание клиента — расширенная версия с полями для дашборда"""
+    city: Optional[str] = None
+    monthly_income: Optional[float] = None
+    status: str = "ACTIVE"
 
 
-class ClientUpdate(ClientBase):
+class ClientUpdate(BaseModel):
     full_name: Optional[str] = None
+    city: Optional[str] = None
+    monthly_income: Optional[float] = None
+    status: Optional[str] = None
 
 
 class ClientRead(ClientBase):
-    id: int
+    client_id: int
     user_id: int
+    city: Optional[str] = None
+    monthly_income: Optional[float] = None
+    status: str = "ACTIVE"
+    credit_score: Optional[int] = None
+    segment: Optional[str] = None
 
     class Config:
         from_attributes = True
+
 
 class ClientFilter(BaseModel):
     """Filters for listing clients."""
@@ -33,3 +45,6 @@ class ClientFilter(BaseModel):
     email: Optional[str] = None
     tax_id: Optional[str] = None
     risk_profile_id: Optional[int] = None
+    city: Optional[str] = None
+    status: Optional[str] = None
+    segment: Optional[str] = None

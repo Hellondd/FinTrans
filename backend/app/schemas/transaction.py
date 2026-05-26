@@ -10,22 +10,27 @@ class TransactionBase(BaseModel):
     currency: str = "RUB"
     description: Optional[str] = None
     transaction_type: str  # "deposit", "withdrawal", "transfer"
+    country: Optional[str] = None  
+    device: Optional[str] = None   
 
 
 class TransactionCreate(TransactionBase):
-    pass
+    status: Optional[str] = "approved"   
+    is_fraud: Optional[bool] = False     
 
 
 class TransactionUpdate(BaseModel):
+    amount: Optional[float] = None
     description: Optional[str] = None
     status: Optional[str] = None
 
 
 class TransactionRead(TransactionBase):
-    id: int
+    transaction_id: int  
     user_id: int
     status: str
-    created_at: datetime
+    is_fraud: bool
+    timestamp: datetime  
     updated_at: Optional[datetime] = None
 
     class Config:

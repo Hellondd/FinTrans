@@ -14,11 +14,9 @@ class ClientRepository:
         client = Client(
             user_id=user_id,
             full_name=client_data.full_name,
-            phone=client_data.phone,
-            email=client_data.email,
-            passport_data=client_data.passport_data,
-            tax_id=client_data.tax_id,
-            risk_profile_id=client_data.risk_profile_id
+            city=client_data.city,
+            monthly_income=client_data.monthly_income,
+            status=client_data.status
         )
         self.db.add(client)
         await self.db.commit()
@@ -28,7 +26,7 @@ class ClientRepository:
     async def get_client_by_id(self, client_id: int) -> Optional[Client]:
         """Get client by ID."""
         result = await self.db.execute(
-            select(Client).where(Client.id == client_id)
+            select(Client).where(Client.client_id == client_id)
         )
         return result.scalar_one_or_none()
 
@@ -47,7 +45,8 @@ class ClientRepository:
         
         update_data = client_data.dict(exclude_unset=True)
         for field, value in update_data.items():
-            setattr(client, field, value)
+            if hasattr(client, field):
+                setattr(client, field, value)
         
         await self.db.commit()
         await self.db.refresh(client)

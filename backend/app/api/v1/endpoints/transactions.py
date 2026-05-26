@@ -6,6 +6,9 @@ from app.core.deps import get_db, get_current_user
 from app.models.user import User
 from app.repositories.transaction_repo import TransactionRepository
 from app.schemas.transaction import TransactionRead
+from app.schemas.transaction import TransactionUpdate
+from app.schemas.transaction import TransactionCreate
+from app.services.transaction_service import TransactionService
 
 router = APIRouter(prefix="/transactions", tags=["Транзакции"])
 
@@ -41,3 +44,43 @@ async def get_transactions(
             "total": len(transactions)
         }
     }
+
+@router.put("/{transaction_id}")
+async def update_transaction(
+    transaction_id: int,
+    transaction_data: TransactionUpdate,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Обновление транзакции."""
+    repo = TransactionRepository(db)
+    transaction = await repo.update_transaction(transaction_id, transaction_data)
+    if not transaction:
+        raise HTTPException(status_code=404, detail="Транзакция не найдена")
+    return transaction
+
+
+@router.delete("/{transaction_id}")
+async def delete_transaction(
+    transaction_id: int,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Удаление транзакции."""
+    repo = TransactionRepository(db)
+    deleted = await repo.delete_transaction(transaction_id)
+    if not deleted:
+        raise HTTPException(status_code=404, detail="Транзакция не найдена")
+    return {"message": "Транзакция успешно удалена"}
+
+
+@router.post("/", response_model=TransactionRead)
+async def create_transaction(
+    transaction_data: TransactionCreate,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Создание новой транзакции с антифрод-проверкой."""
+    service = TransactionService(db)
+    result = await service.process_transaction(transaction_data, current_user.id)
+    return result["transaction"]

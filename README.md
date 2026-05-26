@@ -1,4 +1,4 @@
-# FinTrans
+# FinTrans CRM
 
 CRM-система для финансовой компании с автоматизацией скоринга, антифрод-анализом и аналитическими дашбордами.
 
@@ -17,143 +17,183 @@ CRM-система для финансовой компании с автома�
 - Docker Desktop
 - WSL2 (для Windows)
 
-
 ## Установка и запуск
 
 ### 1. Клонировать репозиторий
 
 ```
 git clone <repo-url>
+cd backend
 ```
 
 
 ### 2. Создать файл .env
 ```
-cd backend
 cp .env.example .env
 ```
 
-### 3. Запустить базу данных(обязательно установить DockerDesktop)
+### 3. Запустить контейнеры (обязательно установить Docker Desktop)
 ```
-docker-compose up -d db
+docker-compose up -d --build
 ```
-### 4. Установить зависимости
+
+### 4. Применить миграции
+```
+docker exec -it fintrans-backend alembic upgrade head
+```
+
+### 5. Импортировать данные из Excel
 ```
 pip install -r requirements.txt
 ```
 
 ### 5. Применить миграции
 ```
-alembic upgrade head
+docker exec -it fintrans-backend python run_import.py
 ```
 
-### 6. Запустить приложение
-```
-uvicorn app.main:app --reload
-```
-
-### 7. Открыть документацию
+### 6. Открыть документацию
 
 - Swagger: http://localhost:8000/docs
 
 - ReDoc: http://localhost:8000/redoc
 
 
-<img width="1920" height="1030" alt="Снимок экрана (1480)" src="https://github.com/user-attachments/assets/f60af267-4217-4a7a-b256-32ba4b68a853" />
+<img width="1920" height="1033" alt="Снимок экрана (1521)" src="https://github.com/user-attachments/assets/0ff180c0-1630-452b-be48-ba248fa3f606" />
+
+## Авторизация для получения токена
+
+<img width="1920" height="1036" alt="Снимок экрана (1508)" src="https://github.com/user-attachments/assets/bf17c61b-702f-4832-ad9f-91e5671b557c" />
+
+
+## Dashboard get
+<img width="1920" height="1033" alt="Снимок экрана (1525)" src="https://github.com/user-attachments/assets/60ba17a6-a6a1-4c0a-a03c-52f12397d409" />
+
+## API Эндпоинты
+
+| Метод | Эндпоинт | Описание | Доступ |
+|-------|----------|----------|--------|
+| POST | `/api/v1/auth/register` | Регистрация пользователя | Все |
+| POST | `/api/v1/auth/login` | Вход (JWT токен) | Все |
+| GET | `/api/v1/clients/` | Список клиентов | Авторизованные |
+| POST | `/api/v1/clients/` | Создать клиента | Авторизованные |
+| GET | `/api/v1/clients/{id}` | Карточка клиента | Авторизованные |
+| PUT | `/api/v1/clients/{id}` | Обновить клиента | Авторизованные |
+| DELETE | `/api/v1/clients/{id}` | Удалить клиента | Авторизованные |
+| GET | `/api/v1/transactions/` | Список транзакций | Авторизованные |
+| POST | `/api/v1/transactions/` | Создать транзакцию | Авторизованные |
+| PUT | `/api/v1/transactions/{id}` | Обновить транзакцию | Авторизованные |
+| DELETE | `/api/v1/transactions/{id}` | Удалить транзакцию | Авторизованные |
+| GET | `/api/v1/dashboard/kpi` | KPI дашборда | Авторизованные |
+| GET | `/api/v1/dashboard/transactions/daily` | Динамика транзакций | Авторизованные |
+| GET | `/api/v1/dashboard/segments` | Сегменты клиентов | Авторизованные |
+| GET | `/api/v1/dashboard/fraud/stats` | Статистика фрода | ADMIN, SECURITY |
+| POST | `/api/v1/import/excel` | Импорт из Excel | ADMIN |
 
 
 ## Структура проекта
 ```
-backend/                         # Корневая папка проекта
-│
-├── app/                         # Основной код приложения
-│   ├── api/                     # Слой маршрутов (HTTP эндоинты)
-│   │   └── v1/                  # Версия API 1
-│   │       └── endpoints/       # Точки входа (обработчики запросов)
-│   │           ├── auth.py      # Регистрация, логин, получение JWT
-│   │           ├── clients.py   # CRUD операции с клиентами
-│   │           └── transactions.py # Работа с транзакциями
-│   │
-│   ├── core/                    # Ядро приложения (настройки и инфраструктура)
-│   │   ├── config.py            # Чтение .env, настройки проекта
-│   │   ├── database.py          # Подключение к PostgreSQL, движок SQLAlchemy
-│   │   ├── deps.py              # Зависимости (get_db, get_current_user)
-│   │   └── security.py          # Хеширование паролей, JWT токены
-│   │
-│   ├── models/                  # SQLAlchemy ORM модели (таблицы БД)
-│   │   ├── __init__.py          # Инициализация пакета
-│   │   ├── client.py            # Клиенты (ФИО, доход, скоринг, сегмент)
-│   │   ├── user.py              # Пользователи системы (логин, пароль, роль)
-│   │   ├── address.py           # Адреса клиентов
-│   │   ├── contact.py           # Контакты (email, телефон, Telegram)
-│   │   ├── document.py          # Документы (паспорт, ИНН, СНИЛС)
-│   │   ├── product.py           # Продукты клиента (кредиты, депозиты)
-│   │   ├── risk_profile.py      # Риск-профили (fraud-флаги, просрочки)
-│   │   └── transaction.py       # Транзакции (сумма, тип, дата, страна)
-│   │
-│   ├── schemas/                 # Pydantic схемы (валидация входящих данных)
-│   │   ├── __init__.py          # Инициализация пакета
-│   │   ├── auth.py              # UserCreate, Token, TokenData
-│   │   ├── client.py            # ClientCreate, ClientUpdate, ClientRead
-│   │   └── transaction.py       # TransactionCreate, TransactionRead
-│   │
-│   ├── repositories/            # DAO слой (доступ к БД)
-│   │   ├── __init__.py          # Инициализация пакета
-│   │   ├── user_repo.py         # UserRepository (поиск, создание пользователя)
-│   │   ├── client_repo.py       # ClientRepository (CRUD клиентов)
-│   │   └── transaction_repo.py  # TransactionRepository (CRUD транзакций)
-│   │
-│   ├── utils/                   # Вспомогательные утилиты
-│   │   ├── __init__.py          # Инициализация пакета
-│   │   └── excel_import.py      # Импорт клиентов из clients.xlsx
-│   │
-│   └── main.py                  # Точка входа в приложение (FastAPI)
-│
-├── alembic/                     # Миграции базы данных
-│   ├── versions/                # История изменений БД
-│   │   └── 0af825fbea68_initial_migration_create_all_tables.py
-│   ├── env.py                   # Конфиг подключения Alembic к БД
-│   └── script.py.mako           # Шаблон для создания новых миграций
-│
-├── requirements.txt             # Все Python зависимости проекта
-├── docker-compose.yml           # Запуск PostgreSQL в контейнере
-├── .env.example                 # Пример переменных окружения (без секретов)
-├── .gitignore                   # Исключения для Git
-└── README.md                    # Документация по запуску проекта
+backend/
+├── app/
+│   ├── api/v1/endpoints/   # Эндпоинты (auth, clients, transactions, dashboard, import)
+│   ├── core/               # Конфиг, БД, зависимости, безопасность
+│   ├── models/             # SQLAlchemy модели (9 таблиц)
+│   ├── schemas/            # Pydantic схемы
+│   ├── repositories/       # DAO слой
+│   ├── services/           # Бизнес-логика (скоринг, антифрод, дашборд)
+│   └── utils/              # Вспомогательные функции (Excel импорт)
+├── alembic/                # Миграции БД
+├── data/                   # Excel файлы для импорта
+├── requirements.txt
+├── docker-compose.yml
+├── Dockerfile
+├── run_import.py           # Скрипт импорта данных
+├── .env.example
+└── README.md
 ```
+
+## Реализованные компоненты
 
 ## Реализованные компоненты
 
 | № | Компонент | Статус |
 |---|-----------|--------|
-| 1 | БД (9 таблиц) | Готова |
-| 2 | Модели (SQLAlchemy) | Готовы |
-| 3 | Миграции (Alembic) | Готовы |
-| 4 | API авторизации | Готов |
-| 5 | API клиентов | Готов |
-| 6 | API транзакций | Готов |
-| 7 | Репозитории (DAO) | Готовы |
-| 8 | Docker + PostgreSQL | Работает |
-| 9 | Бизнес-логика (Скоринг) | Готова |
-| 10 | Антифрод-сервис | Готов |
+| 1 | БД (9 таблиц) | ✅ Готова |
+| 2 | Модели (SQLAlchemy) | ✅ Готовы |
+| 3 | Миграции (Alembic) | ✅ Готовы |
+| 4 | API авторизации (JWT) | ✅ Готов |
+| 5 | API клиентов (CRUD) | ✅ Готов |
+| 6 | API транзакций (CRUD) | ✅ Готов |
+| 7 | Репозитории (DAO) | ✅ Готовы |
+| 8 | Docker + PostgreSQL | ✅ Работает |
+| 9 | Скоринг-сервис | ✅ Готов |
+| 10 | Антифрод-сервис | ✅ Готов |
+| 11 | Дашборд KPI | ✅ Готов |
+| 12 | Импорт из Excel | ✅ Готов |
 
-## Добавленная Бизнес-логика (Сервисный слой)
+## Бизнес-логика (Сервисный слой)
 В директории `backend/app/services/` реализованы следующие сервисы:
 1. **ScoringService (`scoring_service.py`)**: Реализует 5-факторную модель расчета кредитного скоринга и определение лимитов, присваивает клиенту сегмент и уровень риска.
 2. **FraudService (`fraud_service.py`)**: Производит 6-факторный анализ транзакций, вычисляет Fraud Score и выносит решение: одобрить, отправить на ручную проверку или заблокировать транзакцию.
 3. **ClientService (`client_service.py`)**: Инкапсулирует логику создания и управления клиентами, автоматически рассчитывая их скоринг.
 4. **TransactionService (`transaction_service.py`)**: Управляет созданием транзакций, интегрируя обязательную предварительную проверку на мошенничество.
 
+## Переменные окружения (.env)
+
+| Переменная | Описание |
+|------------|----------|
+| `POSTGRES_SERVER` | Хост БД (db для Docker) |
+| `POSTGRES_USER` | Пользователь БД |
+| `POSTGRES_PASSWORD` | Пароль БД |
+| `POSTGRES_DB` | Название БД |
+| `JWT_SECRET_KEY` | Секрет для JWT |
+| `JWT_ALGORITHM` | Алгоритм (HS256) |
+| `ACCESS_TOKEN_EXPIRE_MINUTES` | Время жизни токена |
+
+## Полезные команды
+
+### Остановка контейнеров
+```
+docker-compose down
+```
+
+### Перезапуск (без потери данных)
+```
+docker-compose down && docker-compose up -d
+```
+
+### Полный сброс (удаляет БД)
+```
+docker-compose down -v && docker-compose up -d --build
+```
+
+### Просмотр логов
+```
+docker logs fintrans-backend --tail 50
+docker logs fintrans-postgres --tail 50
+```
+
+### Подключение к БД
+```
+docker exec -it fintrans-postgres psql -U fintrans -d fintrans_db
+```
 
 
+## Что ещё нужно сделать в проекте (по ТЗ)
+## 🔴 MUST
 
-## Что нужно доделать
+| № | Задача | Статус | Описание |
+|---|--------|--------|----------|
+| 1 | Карточка клиента с агрегированными данными | ❌ Не сделано | `GET /api/v1/clients/{id}/full` — все связанные данные (контакты, адреса, документы, продукты, транзакции)  |
+| 2 | Список продуктов клиента | ❌ Не сделано | `GET /api/v1/clients/{id}/products`  |
+| 3 | Роли и права доступа (RBAC) | 🔧 Частично | Ограничить доступ к эндпоинтам по ролям (ADMIN, MANAGER, ANALYST, SECURITY, VIEWER)  |
+| 4 | AuditLog | ❌ Не сделано | Логирование изменений клиентов/скора/транзакций  |
+| 5 | FraudAlert | ❌ Не сделано | Автоматическое создание алертов при подозрительных транзакциях  |
 
-1. **Импорт данных из Excel (clients.xlsx)**
-   - 7 листов, >200 000 записей
-   - Нужен сервис ExcelImportService
-   - Batch-обработка (чтобы не падало по таймауту)
+## 🟡 SHOULD 
 
-2. **Дашборды и аналитика**
-   - KPI в реальном времени
-   - Экспорт PDF/CSV/Excel
+| № | Задача | Статус | Описание |
+|---|--------|--------|----------|
+| 6 | Тесты | ❌ Не сделано | Покрытие бизнес-логики тестами ≥70%  |
+| 7 | Экспорт отчетов (PDF/CSV/Excel) | ❌ Не сделано | Дашборды с экспортом  |
+| 8 | Уведомления (email/telegram) | ❌ Не сделано | При fraud-алертах  |
