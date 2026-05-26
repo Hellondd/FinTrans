@@ -1,6 +1,6 @@
 from typing import Optional, List
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+from sqlalchemy import select, func
 from app.models.client import Client
 from app.schemas.client import ClientCreate, ClientUpdate
 
@@ -61,3 +61,51 @@ class ClientRepository:
         await self.db.delete(client)
         await self.db.commit()
         return True
+
+    async def get_filtered(
+        self,
+        skip: int = 0,
+        limit: int = 100,
+        segment: Optional[str] = None,
+        city: Optional[str] = None,
+        risk_level: Optional[str] = None,
+        min_income: Optional[float] = None,
+        status: Optional[str] = None
+    ) -> List[Client]:
+        """Получение списка клиентов с фильтрацией и пагинацией."""
+        query = select(Client)
+        
+        if segment:
+            query = query.where(Client.segment == segment)
+        if city:
+            query = query.where(Client.city == city)
+        if min_income:
+            query = query.where(Client.monthly_income >= min_income)
+        if status:
+            query = query.where(Client.status == status)
+        # risk_level требует связи с RiskProfile, пока пропустим
+        
+        query = query.offset(skip).limit(limit)
+        result = await self.db.execute(query)
+        return result.scalars().all()
+
+    async def count_filtered(
+        self,
+        segment: Optional[str] = None,
+        city: Optional[str] = None,
+        risk_level: Optional[str] = None,
+        status: Optional[str] = None
+    ) -> int:
+        """Подсчёт количества клиентов с фильтрацией."""
+        query = select(Client)
+        
+        if segment:
+            query = query.where(Client.segment == segment)
+        if city:
+            query = query.where(Client.city == city)
+        if status:
+            query = query.where(Client.status == status)
+        
+        count_query = select(func.count()).select_from(query.subquery())
+        result = await self.db.execute(count_query)
+        return result.scalar() or 0
