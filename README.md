@@ -46,6 +46,10 @@ docker exec -it fintrans-backend alembic upgrade head
 ```
 pip install -r requirements.txt
 ```
+Импорт транзакций идёт дольше из-за ограничения PostgreSQL (32767 параметров), но все данные сохраняются
+<img width="1920" height="454" alt="Снимок экрана (1527)" src="https://github.com/user-attachments/assets/f33383c4-2fec-461c-bd56-1ef0e37046eb" />
+
+
 
 ### 5. Применить миграции
 ```
