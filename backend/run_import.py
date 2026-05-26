@@ -16,7 +16,7 @@ async def main():
     logger.info("Инициализация подключения к БД для миграции данных...")
     async with AsyncSessionLocal() as session:
         result = await ExcelImportService.import_all_data(session, "data/clients.xlsx")
-        if result["status"] == "success":
+        if result:
             logger.info("Процесс миграции завершен успешно.")
         else:
             logger.error(f"Процесс миграции завершен с ошибкой: {result['message']}")
