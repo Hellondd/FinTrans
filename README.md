@@ -69,6 +69,10 @@ docker exec -it fintrans-backend python run_import.py
 
 <img width="1920" height="1036" alt="Снимок экрана (1508)" src="https://github.com/user-attachments/assets/bf17c61b-702f-4832-ad9f-91e5671b557c" />
 
+## Получение клиента для менеджера
+<img width="1920" height="827" alt="Снимок экрана (1528)" src="https://github.com/user-attachments/assets/970a38b3-ff79-41ac-a8c2-664ff899c857" />
+
+
 
 ## Dashboard get
 <img width="1920" height="1033" alt="Снимок экрана (1525)" src="https://github.com/user-attachments/assets/60ba17a6-a6a1-4c0a-a03c-52f12397d409" />
