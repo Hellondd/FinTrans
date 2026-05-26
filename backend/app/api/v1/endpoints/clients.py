@@ -32,10 +32,13 @@ async def get_clients(
         status=status
     )
     
-    total = await repo.count_filtered(segment=segment, city=city, risk_level=risk_level)
+    total = await repo.count_filtered(segment=segment, city=city, risk_level=risk_level, status=status)
+    
+    # Преобразуем ORM объекты в Pydantic схемы
+    data = [ClientRead.model_validate(client) for client in clients]
     
     return {
-        "data": clients,
+        "data": data,
         "meta": {
             "page": (skip // limit) + 1,
             "limit": limit,
@@ -52,10 +55,10 @@ async def get_client(
     current_user: User = Depends(get_current_user)
 ):
     repo = ClientRepository(db)
-    client = await repo.get_by_id(client_id)
+    client = await repo.get_client_by_id(client_id)
     if not client:
         raise HTTPException(status_code=404, detail="Клиент не найден")
-    return client
+    return ClientRead.model_validate(client)
 
 
 @router.post("/", response_model=ClientRead)
@@ -67,7 +70,8 @@ async def create_client(
     """Создание нового клиента."""
     service = ClientService(db)
     client = await service.register_client(client_data, current_user.id)
-    return client
+    return ClientRead.model_validate(client)
+
 
 @router.put("/{client_id}", response_model=ClientRead)
 async def update_client(
@@ -81,7 +85,7 @@ async def update_client(
     client = await repo.update_client(client_id, client_data)
     if not client:
         raise HTTPException(status_code=404, detail="Клиент не найден")
-    return client
+    return ClientRead.model_validate(client)
 
 
 @router.delete("/{client_id}")
