@@ -1,15 +1,18 @@
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Query, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.deps import get_db, get_current_user
-from app.schemas.client import ClientRead, ClientFilter
+from app.models.user import User
+from app.schemas.client import ClientRead, ClientCreate, ClientUpdate
+from app.services.client_service import ClientService
 from app.repositories.client_repo import ClientRepository
+
 
 router = APIRouter(prefix="/clients", tags=["Клиенты"])
 
 @router.get("/", response_model=dict)
 async def get_clients(
     db: AsyncSession = Depends(get_db),
-    current_user = Depends(get_current_user),
+    current_user: User = Depends(get_current_user),
     skip: int = Query(0, ge=0),
     limit: int = Query(50, ge=1, le=200),
     segment: str = Query(None),
@@ -46,10 +49,50 @@ async def get_clients(
 async def get_client(
     client_id: int,
     db: AsyncSession = Depends(get_db),
-    current_user = Depends(get_current_user)
+    current_user: User = Depends(get_current_user)
 ):
     repo = ClientRepository(db)
     client = await repo.get_by_id(client_id)
     if not client:
         raise HTTPException(status_code=404, detail="Клиент не найден")
     return client
+
+
+@router.post("/", response_model=ClientRead)
+async def create_client(
+    client_data: ClientCreate,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Создание нового клиента."""
+    service = ClientService(db)
+    client = await service.register_client(client_data, current_user.id)
+    return client
+
+@router.put("/{client_id}", response_model=ClientRead)
+async def update_client(
+    client_id: int,
+    client_data: ClientUpdate,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Обновление данных клиента."""
+    repo = ClientRepository(db)
+    client = await repo.update_client(client_id, client_data)
+    if not client:
+        raise HTTPException(status_code=404, detail="Клиент не найден")
+    return client
+
+
+@router.delete("/{client_id}")
+async def delete_client(
+    client_id: int,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Удаление клиента."""
+    repo = ClientRepository(db)
+    deleted = await repo.delete_client(client_id)
+    if not deleted:
+        raise HTTPException(status_code=404, detail="Клиент не найден")
+    return {"message": "Клиент успешно удалён"}
