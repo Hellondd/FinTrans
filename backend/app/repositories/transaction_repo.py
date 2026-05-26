@@ -28,7 +28,7 @@ class TransactionRepository:
     async def get_transaction_by_id(self, transaction_id: int) -> Optional[Transaction]:
         """Get transaction by ID."""
         result = await self.db.execute(
-            select(Transaction).where(Transaction.id == transaction_id)
+            select(Transaction).where(Transaction.transaction_id == transaction_id)  # ← ИСПРАВЛЕНО
         )
         return result.scalar_one_or_none()
 
@@ -65,7 +65,8 @@ class TransactionRepository:
         client_id: int = None,
         skip: int = 0,
         limit: int = 100,
-        is_fraud: bool = None
+        is_fraud: bool = None,
+        status: str = None  # ← добавить для фильтрации по статусу
     ) -> List[Transaction]:
         """Получение транзакций с фильтрацией"""
         query = select(Transaction)
@@ -75,6 +76,9 @@ class TransactionRepository:
         
         if is_fraud is not None:
             query = query.where(Transaction.is_fraud == is_fraud)
+        
+        if status:
+            query = query.where(Transaction.status == status)
         
         query = query.offset(skip).limit(limit)
         
