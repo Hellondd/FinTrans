@@ -1,4 +1,5 @@
 from sqlalchemy import Column, Integer, String, ForeignKey
+from sqlalchemy.orm import relationship
 from app.core.database import Base
 
 class Address(Base):
@@ -12,3 +13,5 @@ class Address(Base):
     street = Column(String(150))
     house = Column(String(20))
     postal_code = Column(String(20))
+
+    client = relationship("Client", back_populates="address")

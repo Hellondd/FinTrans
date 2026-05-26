@@ -1,4 +1,5 @@
 from sqlalchemy import Column, Integer, Float, String, DateTime, Boolean, ForeignKey
+from sqlalchemy.orm import relationship
 from app.core.database import Base
 
 class Transaction(Base):
@@ -12,3 +13,5 @@ class Transaction(Base):
     device = Column(String(50))
     country = Column(String(60))
     is_fraud = Column(Boolean, default=False)
+
+    client = relationship("Client", back_populates="transactions")

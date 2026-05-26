@@ -59,3 +59,24 @@ class TransactionRepository:
         await self.db.commit()
         await self.db.refresh(transaction)
         return transaction
+    
+    async def get_filtered(
+        self,
+        client_id: int = None,
+        skip: int = 0,
+        limit: int = 100,
+        is_fraud: bool = None
+    ) -> List[Transaction]:
+        """Получение транзакций с фильтрацией"""
+        query = select(Transaction)
+        
+        if client_id:
+            query = query.where(Transaction.client_id == client_id)
+        
+        if is_fraud is not None:
+            query = query.where(Transaction.is_fraud == is_fraud)
+        
+        query = query.offset(skip).limit(limit)
+        
+        result = await self.db.execute(query)
+        return result.scalars().all()
