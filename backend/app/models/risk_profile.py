@@ -1,4 +1,5 @@
 from sqlalchemy import Column, Integer, String, Float, ForeignKey
+from sqlalchemy.orm import relationship
 from app.core.database import Base
 
 class RiskProfile(Base):
@@ -11,3 +12,5 @@ class RiskProfile(Base):
     overdue_days = Column(Integer, default=0)
     open_loans = Column(Integer, default=0)
     recommended_limit = Column(Float)
+
+    client = relationship("Client", back_populates="risk_profile")
