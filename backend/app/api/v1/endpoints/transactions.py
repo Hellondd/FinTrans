@@ -10,6 +10,10 @@ from app.schemas.transaction import TransactionUpdate
 from app.schemas.transaction import TransactionCreate
 from app.services.transaction_service import TransactionService
 
+from app.schemas.transaction import TransactionCheck
+from app.services.fraud_service import FraudService
+from datetime import datetime
+
 router = APIRouter(prefix="/transactions", tags=["Транзакции"])
 
 
@@ -84,3 +88,38 @@ async def create_transaction(
     service = TransactionService(db)
     result = await service.process_transaction(transaction_data, current_user.id)
     return result["transaction"]
+
+
+@router.post("/check")
+async def check_transaction_fraud(
+    transaction_data: TransactionCreate,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Проверка транзакции на фрод (без сохранения в БД).
+    Возвращает fraud_score и решение.
+    Доступно: ADMIN, MANAGER, SECURITY
+    """
+    # Получаем недавние транзакции клиента
+    repo = TransactionRepository(db)
+    recent_txs = await repo.get_transactions_by_client(transaction_data.client_id)
+    
+    # Анализ
+    score, decision = FraudService.analyze_transaction(
+        transaction_amount=transaction_data.amount,
+        transaction_country=getattr(transaction_data, 'country', 'RU'),
+        transaction_device=getattr(transaction_data, 'device', 'Unknown'),
+        transaction_time=datetime.utcnow(),
+        recent_transactions=recent_txs,
+        client_history_fraud_flags=0
+    )
+    
+    return {
+        "fraud_score": score,
+        "decision": decision,
+        "is_fraud": decision != "approved",
+        "recommendation": "Одобрено" if decision == "approved" else 
+                         "Требуется ручная проверка" if decision == "manual_review" else 
+                         "Заблокировано"
+    }
