@@ -2,6 +2,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.repositories.transaction_repo import TransactionRepository
 from app.schemas.transaction import TransactionCreate
 from app.services.fraud_service import FraudService
+from app.repositories.fraud_alert_repo import FraudAlertRepository
+from app.schemas.fraud_alert import FraudAlertCreate
 from datetime import datetime
 
 class TransactionService:
@@ -51,6 +53,17 @@ class TransactionService:
             status=status,
             is_fraud=is_fraud
         )
+
+        # Логирование фрод-алерта (AuditLog)
+        if decision in ["blocked", "manual_review"]:
+            alert_repo = FraudAlertRepository(self.repo.db)
+            alert_data = FraudAlertCreate(
+                transaction_id=transaction.transaction_id,
+                client_id=transaction.client_id,
+                fraud_score=score,
+                reason=f"Fraud Service Decision: {decision}"
+            )
+            await alert_repo.create_alert(alert_data)
 
         return {
             "transaction": transaction,
