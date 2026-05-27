@@ -46,49 +46,61 @@ function App() {
     }
   }, []);
 
-  const handleLogin = async (e) => {
-    e.preventDefault();
-    setError('');
-    if (!username.trim() || !password.trim()) {
-      setError('Пожалуйста, заполните все поля ввода');
-      return;
-    }
-    setLoading(true);
-    try {
-      const formData = new URLSearchParams();
-      formData.append('username', username);
-      formData.append('password', password);
-      const response = await fetch('http://127.0.0.1:8000/api/v1/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: formData,
-      });
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.detail || 'Неверные учетные данные');
-      }
-      const data = await response.json();
-      localStorage.setItem('fintrans_auth_token', data.access_token);
-      setIsAuth(true);
-      await fetchUserProfile(data.access_token);
-    } catch (err) {
-      setError(err.message || 'Ошибка соединения с сервером');
-    } finally {
-      setLoading(false);
-    }
-  };
+const fetchUserProfile = async (token) => {
+  try {
+    const response = await fetch('http://localhost:8000/api/v1/auth/me', {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      },
+    });
+    if (!response.ok) throw new Error('Failed to fetch profile');
+    const userData = await response.json();
+    setUser(userData);
+  } catch (err) {
+    console.error('Profile fetch error:', err);
+    handleLogout();
+  }
+};
 
-  const fetchUserProfile = async (token) => {
-    try {
-      const response = await fetch('http://127.0.0.1:8000/api/v1/auth/me', {
-        method: 'GET',
-        headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
-      });
-      if (!response.ok) throw new Error();
-      const userData = await response.json();
-      setUser(userData);
-    } catch (err) { handleLogout(); }
-  };
+
+  const handleLogin = async (e) => {
+  e.preventDefault();
+  setError('');
+  if (!username.trim() || !password.trim()) {
+    setError('Пожалуйста, заполните все поля ввода');
+    return;
+  }
+  setLoading(true);
+  try {
+    const response = await fetch('http://localhost:8000/api/v1/auth/login', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        username: username,
+        password: password
+      }),
+    });
+    
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.detail || 'Неверные учетные данные');
+    }
+    
+    const data = await response.json();
+    localStorage.setItem('fintrans_auth_token', data.access_token);
+    setIsAuth(true);
+    await fetchUserProfile(data.access_token);
+  } catch (err) {
+    console.error('Login error:', err);
+    setError(err.message || 'Ошибка соединения с сервером');
+  } finally {
+    setLoading(false);
+  }
+};
 
   const handleLogout = () => {
     localStorage.removeItem('fintrans_auth_token');
