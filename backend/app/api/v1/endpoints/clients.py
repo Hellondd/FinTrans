@@ -3,14 +3,15 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.deps import get_db, get_current_user
 from app.models.user import User
 from app.schemas.client import ClientRead, ClientCreate, ClientUpdate
+from app.schemas.product import ProductRead
+from typing import List
 from app.services.client_service import ClientService
 from app.repositories.client_repo import ClientRepository
 from app.services.scoring_service import ScoringService
 from sqlalchemy.orm import selectinload
 from sqlalchemy import select
 from app.models.client import Client
-
-
+from app.models.product import Product
 
 router = APIRouter(prefix="/clients", tags=["Клиенты"])
 
@@ -65,6 +66,19 @@ async def get_client(
         raise HTTPException(status_code=404, detail="Клиент не найден")
     return ClientRead.model_validate(client)
 
+
+@router.get("/{client_id}/products", response_model=List[ProductRead])
+async def get_client_products(
+    client_id: int,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Получить список продуктов клиента."""
+    service = ClientService(db)
+    products = await service.get_client_products(client_id)
+    if products is None:
+        raise HTTPException(status_code=404, detail="Клиент не найден")
+    return products
 
 @router.post("/", response_model=ClientRead)
 async def create_client(
