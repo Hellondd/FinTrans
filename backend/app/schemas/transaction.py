@@ -43,3 +43,12 @@ class TransactionFilter(BaseModel):
     status: Optional[str] = None
     date_from: Optional[datetime] = None
     date_to: Optional[datetime] = None
+
+class TransactionCheck(BaseModel):
+    """Схема для проверки транзакции на фрод (без сохранения)"""
+    client_id: int
+    amount: float
+    transaction_type: str
+    currency: str = "RUB"
+    country: str = "RU"
+    device: str = "Unknown"
