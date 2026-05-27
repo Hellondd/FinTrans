@@ -12,15 +12,15 @@ class TransactionService:
         """
         Обработка транзакции с предварительной проверкой на фрод (мошенничество) перед сохранением.
         """
-        # Получение недавних транзакций для анализа флуда (упрощенно)
+        # Получение недавних транзакций для анализа флуда
         recent_txs = await self.repo.get_transactions_by_client(transaction_data.client_id)
         
-        # Значения по умолчанию, если они отсутствуют в схеме
-        amount = getattr(transaction_data, 'amount', 0.0)
-        country = getattr(transaction_data, 'country', 'RU')
-        device = getattr(transaction_data, 'device', 'Unknown')
+        # Значения по умолчанию
+        amount = transaction_data.amount
+        country = transaction_data.country or 'RU'
+        device = transaction_data.device or 'Unknown'
         
-        # В реальном приложении мы бы запрашивали историю фрод-флагов клиента из БД
+        # История фрод-флагов клиента (пока заглушка)
         client_fraud_flags = 0
 
         # Анализ транзакции
@@ -33,19 +33,24 @@ class TransactionService:
             client_history_fraud_flags=client_fraud_flags
         )
 
-        # Обновление статуса на основе решения
+        # Определяем статус и флаг фрода на основе решения
         if decision == "blocked":
-            transaction_data.status = "blocked"
-            transaction_data.is_fraud = True
+            status = "blocked"
+            is_fraud = True
         elif decision == "manual_review":
-            transaction_data.status = "pending_review"
-            transaction_data.is_fraud = False
+            status = "pending_review"
+            is_fraud = False
         else:
-            transaction_data.status = "approved"
-            transaction_data.is_fraud = False
+            status = "approved"
+            is_fraud = False
 
         # Создание записи в базе данных
-        transaction = await self.repo.create_transaction(transaction_data, user_id)
+        transaction = await self.repo.create_transaction(
+            transaction_data, 
+            user_id,
+            status=status,
+            is_fraud=is_fraud
+        )
 
         return {
             "transaction": transaction,
