@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
-from app.api.v1.endpoints import auth, clients, transactions, dashboard, import_data
+from app.api.v1.endpoints import auth, clients, transactions, dashboard, import_data, fraud
 
 app = FastAPI(title=settings.PROJECT_NAME, version=settings.VERSION)
 
@@ -20,6 +20,7 @@ app.include_router(clients.router, prefix=settings.API_V1_STR)
 app.include_router(transactions.router, prefix=settings.API_V1_STR)
 app.include_router(dashboard.router, prefix=settings.API_V1_STR)
 app.include_router(import_data.router, prefix=settings.API_V1_STR)
+app.include_router(fraud.router, prefix=settings.API_V1_STR + "/fraud", tags=["fraud"])
 
 @app.get("/")
 async def root():
