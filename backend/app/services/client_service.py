@@ -2,6 +2,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.repositories.client_repo import ClientRepository
 from app.schemas.client import ClientCreate, ClientUpdate
 from app.services.scoring_service import ScoringService
+from app.repositories.product_repo import ProductRepository
+from typing import List
+from app.models.product import Product
 
 class ClientService:
     def __init__(self, db: AsyncSession):
@@ -49,3 +52,12 @@ class ClientService:
     async def update_client(self, client_id: int, client_data: ClientUpdate):
         # При обновлении можно пересчитать скоринг
         return await self.repo.update_client(client_id, client_data)
+
+    async def get_client_products(self, client_id: int) -> List[Product]:
+        """Получить все продукты клиента."""
+        client = await self.repo.get_client_by_id(client_id)
+        if not client:
+            return None
+        
+        product_repo = ProductRepository(self.repo.db)
+        return await product_repo.get_products_by_client_id(client_id)
