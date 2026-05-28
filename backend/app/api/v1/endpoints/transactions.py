@@ -25,7 +25,9 @@ async def get_transactions(
     skip: int = Query(0, ge=0),
     limit: int = Query(100, ge=1, le=1000),
     is_fraud: Optional[bool] = Query(None),
-    status: Optional[str] = Query(None)
+    status: Optional[str] = Query(None),
+    transaction_type: Optional[str] = Query(None),   
+    country: Optional[str] = Query(None)
 ):
     repo = TransactionRepository(db)
     transactions = await repo.get_filtered(
@@ -33,7 +35,9 @@ async def get_transactions(
         skip=skip,
         limit=limit,
         is_fraud=is_fraud,
-        status=status
+        status=status,
+        transaction_type=transaction_type, 
+        country=country
     )
     
     data = [TransactionRead.model_validate(t) for t in transactions]
