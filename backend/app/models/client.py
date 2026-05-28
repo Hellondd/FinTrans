@@ -6,7 +6,7 @@ class Client(Base):
     __tablename__ = "clients"
 
     client_id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=True)
     full_name = Column(String(150), nullable=False)
     gender = Column(String(10))
     birth_date = Column(Date)
