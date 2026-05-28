@@ -120,6 +120,11 @@ backend/
 └── README.md
 ```
 
+Интерфейс 
+
+<img width="1920" height="1028" alt="Снимок экрана (1560)" src="https://github.com/user-attachments/assets/95b259af-ea9e-484d-b38b-a99700a2d156" />
+
+
 ## Реализованные компоненты
 
 ## Реализованные компоненты
@@ -211,7 +216,6 @@ docker exec -it fintrans-postgres psql -U fintrans -d fintrans_db
 | 2 | Список продуктов клиента | ✅ Готово | `GET /api/v1/clients/{id}/products`  |
 | 3 | Роли и права доступа (RBAC) | 🔧 Частично | Ограничить доступ к эндпоинтам по ролям (ADMIN, MANAGER, ANALYST, SECURITY, VIEWER)  |
 | 4 | AuditLog | ✅ Готово | Логирование изменений клиентов/скора/транзакций  |
-| 5 | FraudAlert | ✅ Готово | Автоматическое создание алертов при подозрительных транзакциях  |
 
 ## 🟡 SHOULD 
 
