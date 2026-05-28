@@ -120,12 +120,29 @@ backend/
 └── README.md
 ```
 
-Интерфейс 
+##Интерфейс 
 
-<img width="1920" height="1028" alt="Снимок экрана (1560)" src="https://github.com/user-attachments/assets/95b259af-ea9e-484d-b38b-a99700a2d156" />
+Регистрация
+<img width="1920" height="996" alt="Снимок экрана (1585)" src="https://github.com/user-attachments/assets/a070ade5-5e55-4952-84b1-2724479a0693" />
 
 
-## Реализованные компоненты
+##Главная страница(аналитика)
+
+<img width="1920" height="996" alt="Снимок экрана (1586)" src="https://github.com/user-attachments/assets/56d190c5-a09f-412c-97c9-db9fd56cf9be" />
+
+
+## Поиск клиента
+
+<img width="1920" height="993" alt="Снимок экрана (1587)" src="https://github.com/user-attachments/assets/8eea0bb8-9766-4d57-907c-974dac4214af" />
+
+
+## Продукты клиента
+
+<img width="1920" height="998" alt="Снимок экрана (1588)" src="https://github.com/user-attachments/assets/d12d842d-d884-4830-8c6f-042228cc8a0d" />
+
+
+
+
 
 ## Реализованные компоненты
 
@@ -213,9 +230,8 @@ docker exec -it fintrans-postgres psql -U fintrans -d fintrans_db
 | № | Задача | Статус | Описание |
 |---|--------|--------|----------|
 | 1 | Карточка клиента с агрегированными данными | ❌ Не сделано | `GET /api/v1/clients/{id}/full` — все связанные данные (контакты, адреса, документы, продукты, транзакции)  |
-| 2 | Список продуктов клиента | ✅ Готово | `GET /api/v1/clients/{id}/products`  |
-| 3 | Роли и права доступа (RBAC) | 🔧 Частично | Ограничить доступ к эндпоинтам по ролям (ADMIN, MANAGER, ANALYST, SECURITY, VIEWER)  |
-| 4 | AuditLog | ✅ Готово | Логирование изменений клиентов/скора/транзакций  |
+| 2 | Роли и права доступа (RBAC) | 🔧 Частично | Ограничить доступ к эндпоинтам по ролям (ADMIN, MANAGER, ANALYST, SECURITY, VIEWER)  |
+| 3 | AuditLog | ✅ Готово | Логирование изменений клиентов/скора/транзакций  |
 
 ## 🟡 SHOULD 
 
