@@ -1,78 +1,82 @@
 from typing import Tuple
 
 class ScoringService:
+    """
+    Сервис расчёта кредитного скоринга и рекомендаций.
+    """
+
     @staticmethod
     def calculate_credit_score(
-        monthly_income: float,
-        overdue_days: int,
-        open_loans: int,
-        fraud_flags: int,
-        active_products: int
+        monthly_income: float = 0,
+        overdue_days: int = 0,
+        open_loans: int = 0,
+        fraud_flags: int = 0,
+        active_products: int = 0,
+        credit_score: int = 0
     ) -> int:
-        """
-        Расчет кредитного скоринга на основе 5 факторов.
-        Возвращает скоринг от 300 до 850.
-        """
-        base_score = 500
-        
-        # 1. Фактор дохода
-        if monthly_income > 150000:
-            base_score += 100
-        elif monthly_income > 80000:
-            base_score += 50
-        elif monthly_income < 30000:
-            base_score -= 50
+        """Возвращает скоринг от 300 до 850."""
+        income = monthly_income or 0
+        score = 500
 
-        # 2. Фактор просрочек
+        # 1. Доход
+        if income > 150000:
+            score += 110
+        elif income > 80000:
+            score += 65
+        elif income > 40000:
+            score += 25
+        elif income < 25000:
+            score -= 75
+
+        # 2. Кредитный рейтинг
+        if credit_score:
+            if credit_score >= 750:
+                score += 100
+            elif credit_score >= 650:
+                score += 55
+            elif credit_score < 500:
+                score -= 90
+
+        # 3. Просрочки
         if overdue_days > 90:
-            base_score -= 200
+            score -= 140
         elif overdue_days > 30:
-            base_score -= 100
+            score -= 75
         elif overdue_days > 0:
-            base_score -= 30
-        else:
-            base_score += 50
+            score -= 35
 
-        # 3. Открытые кредиты
-        if open_loans > 5:
-            base_score -= 100
-        elif open_loans > 2:
-            base_score -= 50
-        elif open_loans == 0:
-            base_score += 20
-            
-        # 4. Фрод-индикаторы
-        if fraud_flags > 0:
-            base_score -= 150 * fraud_flags
+        # 4. Fraud-флаги
+        if fraud_flags >= 3:
+            score -= 180
+        elif fraud_flags >= 1:
+            score -= 70
 
-        # 5. Активные продукты (лояльность)
-        base_score += active_products * 15
+        # 5. Активные продукты
+        score += active_products * 12
 
-        # Нормализация скоринга
-        return max(300, min(850, base_score))
+        return max(300, min(850, score))
+
 
     @staticmethod
-    def calculate_recommended_limit(monthly_income: float, credit_score: int) -> float:
-        """
-        Расчет рекомендуемого лимита: доход * 5 * (скор / 500)
-        """
-        if credit_score < 400:
+    def calculate_recommended_limit(monthly_income: float = 0, credit_score: int = 500) -> float:
+        """Расчёт рекомендуемого лимита"""
+        income = monthly_income or 0
+        if income <= 0 or credit_score < 400:
             return 0.0
-        limit = monthly_income * 5 * (credit_score / 500.0)
+
+        multiplier = credit_score / 550.0   # чуть мягче
+        limit = income * 4.2 * multiplier
         return round(limit, 2)
 
+
     @staticmethod
-    def determine_risk_level_and_segment(credit_score: int, fraud_flags: int) -> Tuple[str, str]:
-        """
-        Определение уровня риска и сегмента клиента на основе скоринга.
-        Возвращает: (risk_level, segment)
-        """
-        if fraud_flags > 1:
-            return "critical", "mass"
-            
-        if credit_score >= 700:
-            return "low", "premium"
-        elif credit_score >= 500:
-            return "medium", "standard"
+    def determine_risk_level_and_segment(credit_score: int, fraud_flags: int = 0) -> Tuple[str, str]:
+        if fraud_flags >= 3:
+            return "critical", "RISKY"
+
+        if credit_score >= 720:
+            return "low", "VIP"
+        elif credit_score >= 580:
+            return "medium", "STANDARD"
         else:
-            return "high", "mass"
+            return "high", "MASS"

@@ -27,7 +27,7 @@ class TransactionUpdate(BaseModel):
 
 class TransactionRead(TransactionBase):
     transaction_id: int  
-    user_id: int
+    user_id: Optional[int] = None
     status: str
     is_fraud: bool
     timestamp: datetime  

@@ -3,6 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func
 from app.models.client import Client
 from app.schemas.client import ClientCreate, ClientUpdate
+from app.models.risk_profile import RiskProfile
 
 
 class ClientRepository:
@@ -65,47 +66,65 @@ class ClientRepository:
     async def get_filtered(
         self,
         skip: int = 0,
-        limit: int = 100,
-        segment: Optional[str] = None,
-        city: Optional[str] = None,
-        risk_level: Optional[str] = None,
-        min_income: Optional[float] = None,
-        status: Optional[str] = None
-    ) -> List[Client]:
-        """Получение списка клиентов с фильтрацией и пагинацией."""
+        limit: int = 50,
+        search: str = None,
+        segment: str = None,
+        city: str = None,
+        risk_level: str = None,
+        min_income: float = None,
+        status: str = None
+    ):
         query = select(Client)
-        
+
+        if search:
+            query = query.where(Client.full_name.ilike(f"%{search}%"))
+
         if segment:
             query = query.where(Client.segment == segment)
         if city:
-            query = query.where(Client.city == city)
-        if min_income:
-            query = query.where(Client.monthly_income >= min_income)
+            query = query.where(Client.city.ilike(f"%{city}%"))
         if status:
             query = query.where(Client.status == status)
-        # risk_level требует связи с RiskProfile, пока пропустим
-        
-        query = query.offset(skip).limit(limit)
+        if min_income is not None:
+            query = query.where(Client.monthly_income >= min_income)
+
+        if risk_level:
+            query = query.join(RiskProfile, Client.risk_profile)
+            query = query.where(RiskProfile.risk_level == risk_level)
+
+        query = query.offset(skip).limit(limit).order_by(Client.client_id)
+
         result = await self.db.execute(query)
         return result.scalars().all()
-
+    
     async def count_filtered(
         self,
-        segment: Optional[str] = None,
-        city: Optional[str] = None,
-        risk_level: Optional[str] = None,
-        status: Optional[str] = None
+        search: str = None,
+        segment: str = None,
+        city: str = None,
+        risk_level: str = None,
+        min_income: float = None,      # оставляем для совместимости
+        status: str = None
     ) -> int:
         """Подсчёт количества клиентов с фильтрацией."""
-        query = select(Client)
-        
+        query = select(func.count()).select_from(Client)
+
+        if search:
+            query = query.where(Client.full_name.ilike(f"%{search}%"))
         if segment:
             query = query.where(Client.segment == segment)
         if city:
-            query = query.where(Client.city == city)
+            query = query.where(Client.city.ilike(f"%{city}%"))
         if status:
             query = query.where(Client.status == status)
-        
-        count_query = select(func.count()).select_from(query.subquery())
-        result = await self.db.execute(count_query)
+        if min_income is not None:
+            query = query.where(Client.monthly_income >= min_income)
+
+        if risk_level:
+            query = query.join(RiskProfile, Client.risk_profile)
+            query = query.where(RiskProfile.risk_level == risk_level)
+
+        result = await self.db.execute(query)
         return result.scalar() or 0
+    
+    
