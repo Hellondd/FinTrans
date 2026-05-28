@@ -73,7 +73,9 @@ class TransactionRepository:
         skip: int = 0,
         limit: int = 100,
         is_fraud: bool = None,
-        status: str = None  
+        status: str = None,
+        transaction_type: str = None,  
+        country: str = None
     ) -> List[Transaction]:
         """Получение транзакций с фильтрацией"""
         query = select(Transaction)
@@ -86,7 +88,10 @@ class TransactionRepository:
         
         if status:
             query = query.where(Transaction.status == status)
-        
+        if transaction_type:                 
+            query = query.where(Transaction.transaction_type == transaction_type)
+        if country:                               
+            query = query.where(Transaction.country == country)
         query = query.offset(skip).limit(limit)
         
         result = await self.db.execute(query)
