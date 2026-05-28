@@ -166,6 +166,9 @@ FinTrans-develop2/
 
 <img width="1920" height="996" alt="Снимок экрана (1586)" src="https://github.com/user-attachments/assets/56d190c5-a09f-412c-97c9-db9fd56cf9be" />
 
+## Страница просмотра клиентов
+
+<img width="1903" height="803" alt="изображение" src="https://github.com/user-attachments/assets/8b5044ef-0807-4994-9143-e2f60dfc9fe1" />
 
 ## Поиск клиента
 
@@ -174,7 +177,11 @@ FinTrans-develop2/
 
 ## Продукты клиента
 
-<img width="1920" height="998" alt="Снимок экрана (1588)" src="https://github.com/user-attachments/assets/d12d842d-d884-4830-8c6f-042228cc8a0d" />
+<img width="1006" height="438" alt="изображение" src="https://github.com/user-attachments/assets/c02873ec-ceea-4e50-8bd8-3bbe3904f9c0" />
+
+## Страница транзакций
+
+<img width="1873" height="685" alt="изображение" src="https://github.com/user-attachments/assets/ba1a1d63-9a2c-4f6d-af26-a2b00e313bce" />
 
 
 ## Реализованные компоненты
