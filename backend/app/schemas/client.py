@@ -27,7 +27,7 @@ class ClientUpdate(BaseModel):
 
 class ClientRead(ClientBase):
     client_id: int
-    user_id: None
+    user_id: int
     city: Optional[str] = None
     monthly_income: Optional[float] = None
     status: str = "ACTIVE"

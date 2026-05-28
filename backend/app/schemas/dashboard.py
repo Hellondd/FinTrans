@@ -7,8 +7,8 @@ class KPICard(BaseModel):
     """Отдельный KPI для отображения на дашборде"""
     title: str
     value: float | int
-    change: Optional[float] = None  
-    change_type: Optional[str] = None 
+    change: Optional[float] = None  # изменение в %
+    change_type: Optional[str] = None  # "up" или "down"
 
 
 class KPIResponse(BaseModel):

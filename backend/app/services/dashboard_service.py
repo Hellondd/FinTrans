@@ -134,7 +134,7 @@ class DashboardService:
                 ))
             ) or 0
             
-            # Объём транзакций за день (СУММА)
+            # Объём транзакций за день
             volume = await self.db.scalar(
                 select(func.sum(Transaction.amount))
                 .where(and_(
@@ -146,7 +146,7 @@ class DashboardService:
             result.append(DailyTransaction(
                 date=day_date,
                 count=count,
-                volume=round(volume, 2)  # ← volume = сумма
+                volume=round(volume, 2)
             ))
         
         # Возвращаем в хронологическом порядке (от старых к новым)

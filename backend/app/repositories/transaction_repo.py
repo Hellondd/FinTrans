@@ -9,14 +9,8 @@ class TransactionRepository:
     def __init__(self, db: AsyncSession):
         self.db = db
 
-    async def create_transaction(
-        self, 
-        transaction_data: TransactionCreate, 
-        user_id: int,
-        status: str,
-        is_fraud: bool
-    ) -> Transaction:
-        """Create a new transaction with fraud status."""
+    async def create_transaction(self, transaction_data: TransactionCreate, user_id: int) -> Transaction:
+        """Create a new transaction."""
         transaction = Transaction(
             user_id=user_id,
             client_id=transaction_data.client_id,
@@ -24,8 +18,7 @@ class TransactionRepository:
             currency=transaction_data.currency,
             description=transaction_data.description,
             transaction_type=transaction_data.transaction_type,
-            status=status,        
-            is_fraud=is_fraud      
+            status="pending"
         )
         self.db.add(transaction)
         await self.db.commit()
@@ -73,7 +66,7 @@ class TransactionRepository:
         skip: int = 0,
         limit: int = 100,
         is_fraud: bool = None,
-        status: str = None  
+        status: str = None  # ← добавить для фильтрации по статусу
     ) -> List[Transaction]:
         """Получение транзакций с фильтрацией"""
         query = select(Transaction)

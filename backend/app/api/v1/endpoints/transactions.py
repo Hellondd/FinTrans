@@ -21,12 +21,16 @@ router = APIRouter(prefix="/transactions", tags=["Транзакции"])
 async def get_transactions(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
-    client_id: Optional[int] = Query(None),
-    skip: int = Query(0, ge=0),
-    limit: int = Query(100, ge=1, le=1000),
-    is_fraud: Optional[bool] = Query(None),
-    status: Optional[str] = Query(None)
+    client_id: Optional[int] = Query(None, description="ID клиента"),
+    skip: int = Query(0, ge=0, description="Пропустить записей"),
+    limit: int = Query(100, ge=1, le=1000, description="Лимит записей"),
+    is_fraud: Optional[bool] = Query(None, description="Только мошеннические"),
+    status: Optional[str] = Query(None, description="Статус транзакции (approved/pending_review/blocked)")
 ):
+    """
+    Получение списка транзакций с фильтрацией.
+    Доступно всем авторизованным пользователям.
+    """
     repo = TransactionRepository(db)
     transactions = await repo.get_filtered(
         client_id=client_id,
@@ -36,10 +40,8 @@ async def get_transactions(
         status=status
     )
     
-    data = [TransactionRead.model_validate(t) for t in transactions]
-    
     return {
-        "data": data,
+        "data": transactions,
         "meta": {
             "skip": skip,
             "limit": limit,

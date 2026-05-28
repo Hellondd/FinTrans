@@ -21,9 +21,6 @@ async def get_clients(
     current_user: User = Depends(get_current_user),
     skip: int = Query(0, ge=0),
     limit: int = Query(50, ge=1, le=200),
-    
-    # === Новые параметры для поиска ===
-    search: str = Query(None, description="Поиск по ФИО"),  # ← главное
     segment: str = Query(None),
     city: str = Query(None),
     risk_level: str = Query(None),
@@ -31,11 +28,9 @@ async def get_clients(
     status: str = Query(None)
 ):
     repo = ClientRepository(db)
-    
     clients = await repo.get_filtered(
         skip=skip,
         limit=limit,
-        search=search,           # ← добавили
         segment=segment,
         city=city,
         risk_level=risk_level,
@@ -43,14 +38,9 @@ async def get_clients(
         status=status
     )
     
-    total = await repo.count_filtered(
-        search=search,           # ← добавили
-        segment=segment,
-        city=city,
-        risk_level=risk_level,
-        status=status
-    )
+    total = await repo.count_filtered(segment=segment, city=city, risk_level=risk_level, status=status)
     
+    # Преобразуем ORM объекты в Pydantic схемы
     data = [ClientRead.model_validate(client) for client in clients]
     
     return {
@@ -193,28 +183,4 @@ async def get_client_credit_score(
             "fraud_flags": fraud_flags,
             "active_products": active_products
         }
-    }
-
-
-@router.get("/stats")
-async def get_clients_stats(
-    db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user)
-):
-    """Получение статистики по клиентам (общее количество, средний доход)."""
-    repo = ClientRepository(db)
-    
-    # Общее количество клиентов
-    total_clients = await repo.count_filtered()
-    
-    # Средний ежемесячный доход
-    from sqlalchemy import func
-    result = await db.execute(
-        select(func.avg(Client.monthly_income))
-    )
-    avg_income = result.scalar() or 0
-    
-    return {
-        "total_clients": total_clients,
-        "avg_income": float(avg_income)
     }
